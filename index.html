@@ -1,1 +1,591 @@
 
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>土耳其南部海岸与伊斯坦布尔行程规划 (2026)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f9fafb; color: #1f2937; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .nav-btn.active { border-bottom: 2px solid #2563eb; color: #2563eb; font-weight: 600; }
+        .image-placeholder { background-color: #f3f4f6; border: 1px dashed #d1d5db; display: flex; align-items: center; justify-content: center; color: #6b7280; font-size: 0.875rem; border-radius: 0.5rem; width: 100%; font-family: monospace; }
+        
+        /* Loading Spinner for AI */
+        .loader {
+            border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #3b82f6; width: 16px; height: 16px;
+            -webkit-animation: spin 1s linear infinite; animation: spin 1s linear infinite;
+            display: inline-block; vertical-align: middle; margin-right: 8px; display: none;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="antialiased">
+
+<div class="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">
+    <!-- Header -->
+    <header class="mb-6 border-b pb-4">
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">土耳其行程数据报告 (2026.05.01 - 05.06)</h1>
+        <p class="text-gray-600 text-sm">业务模块：安塔利亚、戈西克、卡什及伊斯坦布尔。包含财务核算、交通参数及餐饮备选方案。</p>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="flex overflow-x-auto space-x-6 border-b mb-6 text-sm no-scrollbar" aria-label="Tabs">
+        <button class="nav-btn active pb-3 whitespace-nowrap focus:outline-none" onclick="openTab(event, 'overview')">概览与财务分析</button>
+        <button class="nav-btn pb-3 whitespace-nowrap focus:outline-none" onclick="openTab(event, 'day1')">Day 1 (5/1) 抵达与中转</button>
+        <button class="nav-btn pb-3 whitespace-nowrap focus:outline-none" onclick="openTab(event, 'day2')">Day 2 (5/2) D400自驾</button>
+        <button class="nav-btn pb-3 whitespace-nowrap focus:outline-none" onclick="openTab(event, 'day3')">Day 3 (5/3) 戈西克</button>
+        <button class="nav-btn pb-3 whitespace-nowrap focus:outline-none" onclick="openTab(event, 'day4')">Day 4 (5/4) 卡什与费特希耶</button>
+        <button class="nav-btn pb-3 whitespace-nowrap focus:outline-none" onclick="openTab(event, 'day5')">Day 5 (5/5) 伊斯坦布尔</button>
+        <button class="nav-btn pb-3 whitespace-nowrap focus:outline-none" onclick="openTab(event, 'day6')">Day 6 (5/6) 返程</button>
+        <button class="nav-btn pb-3 whitespace-nowrap focus:outline-none text-blue-600 font-semibold" onclick="openTab(event, 'aiAssistant')">
+            <i class="fa-solid fa-microchip"></i> AI 辅助工具
+        </button>
+    </nav>
+
+    <!-- Content Sections -->
+    <main>
+        <!-- Overview & Financials -->
+        <section id="overview" class="tab-content active">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+                <h2 class="text-lg font-semibold"><i class="fa-solid fa-table-list mr-2"></i>支出明细核算表 (双人)</h2>
+                <div class="flex items-center space-x-3 bg-white p-2 border rounded-md shadow-sm">
+                    <label for="fx-rate" class="text-sm text-gray-700 font-medium">EUR/CNY 汇率:</label>
+                    <input type="number" id="fx-rate" value="8.32" step="0.01" class="border rounded px-2 py-1 text-sm w-20 bg-gray-50 outline-none focus:ring-1 focus:ring-blue-500">
+                    <button onclick="toggleCurrency()" id="currency-btn" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm transition-colors">
+                        转换至人民币 (RMB)
+                    </button>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm mb-4">
+                <table class="min-w-full divide-y divide-gray-200 text-sm">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left font-medium text-gray-500">账单类别</th>
+                            <th class="px-6 py-3 text-left font-medium text-gray-500">项目详情</th>
+                            <th class="px-6 py-3 text-left font-medium text-gray-500">结算状态</th>
+                            <th class="px-6 py-3 text-right font-medium text-gray-500">金额</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200" id="financial-table">
+                        <!-- Paid Items -->
+                        <tr class="bg-green-50/30">
+                            <td class="px-6 py-3 font-medium text-gray-900">洲际航班</td>
+                            <td class="px-6 py-3">Emirates (PEK-DXB-IST 往返) - PNR: DPM27F<br><span class="text-xs text-gray-500">原始金额: CNY 11,632.00</span></td>
+                            <td class="px-6 py-3"><span class="px-2 py-1 inline-flex text-xs leading-4 font-semibold rounded bg-green-100 text-green-800">已支付</span></td>
+                            <td class="px-6 py-3 text-right font-mono cost-cell paid-cell" data-eur="1398.08">€ 1398.08</td>
+                        </tr>
+                        <tr class="bg-green-50/30">
+                            <td class="px-6 py-3 font-medium text-gray-900">土耳其国内线</td>
+                            <td class="px-6 py-3">Turkish Airlines (IST - AYT 单程) - PNR: TZ7LT3<br><span class="text-xs text-gray-500">原始金额: TRY 4,475.16</span></td>
+                            <td class="px-6 py-3"><span class="px-2 py-1 inline-flex text-xs leading-4 font-semibold rounded bg-green-100 text-green-800">已支付</span></td>
+                            <td class="px-6 py-3 text-right font-mono cost-cell paid-cell" data-eur="112.98">€ 112.98</td>
+                        </tr>
+                        <tr class="bg-green-50/30">
+                            <td class="px-6 py-3 font-medium text-gray-900">土耳其国内线</td>
+                            <td class="px-6 py-3">Turkish Airlines (DLM - IST 单程) - PNR: WG8JGW<br><span class="text-xs text-gray-500">原始金额: TRY 3,919.34</span></td>
+                            <td class="px-6 py-3"><span class="px-2 py-1 inline-flex text-xs leading-4 font-semibold rounded bg-green-100 text-green-800">已支付</span></td>
+                            <td class="px-6 py-3 text-right font-mono cost-cell paid-cell" data-eur="98.92">€ 98.92</td>
+                        </tr>
+
+                        <!-- Unpaid/Booked Items -->
+                        <tr>
+                            <td class="px-6 py-3 font-medium text-gray-900">酒店</td>
+                            <td class="px-6 py-3">Marriott Antalya (5/1) - 1 BR Apt</td>
+                            <td class="px-6 py-3"><span class="px-2 py-1 inline-flex text-xs leading-4 font-semibold rounded border border-gray-300 text-gray-700 bg-gray-50">已预订 / 待支付</span></td>
+                            <td class="px-6 py-3 text-right font-mono cost-cell" data-eur="120.29">€ 120.29</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-3 font-medium text-gray-900">酒店</td>
+                            <td class="px-6 py-3">D-Resort Gocek (5/2-5/4)</td>
+                            <td class="px-6 py-3"><span class="px-2 py-1 inline-flex text-xs leading-4 font-semibold rounded border border-gray-300 text-gray-700 bg-gray-50">已预订 / 待支付</span></td>
+                            <td class="px-6 py-3 text-right font-mono cost-cell" data-eur="618.00">€ 618.00</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-3 font-medium text-gray-900">酒店</td>
+                            <td class="px-6 py-3">Oludeniz Blu Luxury (5/4)</td>
+                            <td class="px-6 py-3"><span class="px-2 py-1 inline-flex text-xs leading-4 font-semibold rounded border border-gray-300 text-gray-700 bg-gray-50">已预订 / 待支付</span></td>
+                            <td class="px-6 py-3 text-right font-mono cost-cell" data-eur="129.74">€ 129.74</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-3 font-medium text-gray-900">酒店</td>
+                            <td class="px-6 py-3">Fairmont Quasar IST (5/5)</td>
+                            <td class="px-6 py-3"><span class="px-2 py-1 inline-flex text-xs leading-4 font-semibold rounded border border-gray-300 text-gray-700 bg-gray-50">已预订 / 待支付</span></td>
+                            <td class="px-6 py-3 text-right font-mono cost-cell" data-eur="246.50">€ 246.50</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-3 font-medium text-gray-900">车辆</td>
+                            <td class="px-6 py-3">Cizgi Rent a Car (5/1-5/5) - Rez.ID: 1871882</td>
+                            <td class="px-6 py-3"><span class="px-2 py-1 inline-flex text-xs leading-4 font-semibold rounded border border-yellow-300 text-yellow-800 bg-yellow-50">已预订 / 提车支付</span></td>
+                            <td class="px-6 py-3 text-right font-mono cost-cell" data-eur="150.00">€ 150.00</td>
+                        </tr>
+                        
+                        <!-- Estimated Items -->
+                        <tr>
+                            <td class="px-6 py-3 font-medium text-gray-900">活动</td>
+                            <td class="px-6 py-3">卡什(Kas) Kekova 游船 (需预订)</td>
+                            <td class="px-6 py-3"><span class="px-2 py-1 inline-flex text-xs leading-4 font-semibold rounded border border-blue-200 text-blue-700 bg-blue-50">预算估计</span></td>
+                            <td class="px-6 py-3 text-right font-mono cost-cell" data-eur="80.00">€ 80.00</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-3 font-medium text-gray-900">活动</td>
+                            <td class="px-6 py-3">伊斯坦布尔 博斯普鲁斯游轮 (需预订)</td>
+                            <td class="px-6 py-3"><span class="px-2 py-1 inline-flex text-xs leading-4 font-semibold rounded border border-blue-200 text-blue-700 bg-blue-50">预算估计</span></td>
+                            <td class="px-6 py-3 text-right font-mono cost-cell" data-eur="60.00">€ 60.00</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-3 font-medium text-gray-900">餐饮</td>
+                            <td class="px-6 py-3">行程期间日常餐饮开支估算</td>
+                            <td class="px-6 py-3"><span class="px-2 py-1 inline-flex text-xs leading-4 font-semibold rounded border border-blue-200 text-blue-700 bg-blue-50">预算估计</span></td>
+                            <td class="px-6 py-3 text-right font-mono cost-cell" data-eur="400.00">€ 400.00</td>
+                        </tr>
+                    </tbody>
+                    <tfoot class="bg-gray-100 font-semibold">
+                        <tr>
+                            <td colspan="3" class="px-6 py-3 text-right text-gray-700">已支付项目汇总 (机票):</td>
+                            <td class="px-6 py-3 text-right font-mono text-lg text-green-700" id="total-paid">€ 1609.98</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="px-6 py-3 text-right text-gray-700">待支付项目汇总 (酒店 + 租车 + 预估开支):</td>
+                            <td class="px-6 py-3 text-right font-mono text-lg text-gray-900" id="total-sum">€ 1804.53</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            <p class="text-xs text-gray-500">* 备注：已支付机票类目的底层数据按 EUR/CNY=8.32 换算录入，以便支持右上角的汇率动态转换功能。实际扣款以原始发卡行账单为准。酒店政策支持到店支付/限期免费取消。</p>
+        </section>
+
+        <!-- Day 1 -->
+        <section id="day1" class="tab-content">
+            <h2 class="text-lg font-semibold mb-4 border-l-4 border-gray-800 pl-3">5月1日：抵达伊斯坦布尔及安塔利亚中转</h2>
+            
+            <div class="bg-white p-5 rounded border border-gray-200 mb-6">
+                <h3 class="text-sm font-semibold text-gray-800 mb-3">航班与交通数据</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm border-collapse border border-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="border border-gray-200 px-4 py-2 text-left font-medium text-gray-600">类型/航班号</th>
+                                <th class="border border-gray-200 px-4 py-2 text-left font-medium text-gray-600">时间节点</th>
+                                <th class="border border-gray-200 px-4 py-2 text-left font-medium text-gray-600">机型</th>
+                                <th class="border border-gray-200 px-4 py-2 text-left font-medium text-gray-600">舱位</th>
+                                <th class="border border-gray-200 px-4 py-2 text-left font-medium text-gray-600">确认码 (PNR)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="border border-gray-200 px-4 py-2 text-gray-800">Emirates (入境抵达)</td>
+                                <td class="border border-gray-200 px-4 py-2 text-gray-600">日间航班抵达 (IST)</td>
+                                <td class="border border-gray-200 px-4 py-2 text-gray-600">Boeing 777 / A380</td>
+                                <td class="border border-gray-200 px-4 py-2 text-gray-600">Economy</td>
+                                <td class="border border-gray-200 px-4 py-2 font-mono text-gray-800">DPM27F</td>
+                            </tr>
+                            <tr class="bg-gray-50/50">
+                                <td class="border border-gray-200 px-4 py-2 text-gray-800">Turkish Airlines TK2436</td>
+                                <td class="border border-gray-200 px-4 py-2 text-gray-600">22:15 (IST) - 23:45 (AYT)</td>
+                                <td class="border border-gray-200 px-4 py-2 text-gray-600">Airbus A321-232</td>
+                                <td class="border border-gray-200 px-4 py-2 text-gray-600">Economy (T)</td>
+                                <td class="border border-gray-200 px-4 py-2 font-mono text-gray-800">TZ7LT3</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <ul class="space-y-4 text-sm text-gray-700">
+                        <li class="flex"><span class="w-16 font-semibold shrink-0">中转</span><div>由于TK2436航班时间较晚，日间需在伊斯坦布尔新机场 (IST) 停留。建议利用 YOTELAir 睡眠舱或 IGA Lounge 进行休息。机场内设有 Simit Sarayı 等简餐点。</div></li>
+                        <li class="flex"><span class="w-16 font-semibold shrink-0">提车</span><div>23:45 抵达安塔利亚机场 (AYT)。前往机场内的 Cizgi Rent A Car 柜台办理车辆交付。</div></li>
+                        <li class="flex"><span class="w-16 font-semibold shrink-0">入住</span><div>车程约 15-20 分钟抵达 Marriott Executive Apartments Antalya 办理入住。</div></li>
+                    </ul>
+                </div>
+                <div class="h-40 image-placeholder">
+                    
+                </div>
+            </div>
+        </section>
+
+        <!-- Day 2 -->
+        <section id="day2" class="tab-content">
+            <h2 class="text-lg font-semibold mb-4 border-l-4 border-gray-800 pl-3">5月2日：D400 公路驾驶与戈西克定点</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <ul class="space-y-4 text-sm text-gray-700 mb-6">
+                        <li class="flex"><span class="w-16 font-semibold shrink-0">09:30</span><div>从 Marriott 酒店退房。接入 D400 国道向西行驶。安塔利亚至卡什段涉及沿海山路，路段曲折。根据租车协议，城际限速 90 km/h，超速违章将由租车公司代缴并收取手续费。</div></li>
+                        <li class="flex"><span class="w-16 font-semibold shrink-0">12:30</span><div>预计行驶至 Demre 或 Kas 区域，建议在此进行午间休整。</div></li>
+                        <li class="flex"><span class="w-16 font-semibold shrink-0">16:30</span><div>抵达目的地 D-Resort Göcek。该区域为游艇码头，酒店含专用沙滩，办理入住后自由活动。</div></li>
+                    </ul>
+
+                    <h3 class="text-sm font-semibold text-gray-800 mb-2 mt-4">餐饮清单</h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="p-3 bg-gray-50 border rounded text-gray-700">
+                            <strong>午餐节点 (卡什/D400沿线):</strong> Kas Dürümcüsü<br>
+                            <span class="text-gray-500">主营当地烤肉卷饼 (Tavuk Döner)，出餐速度快，符合自驾途中的时间约束。</span>
+                        </div>
+                        <div class="p-3 bg-gray-50 border rounded text-gray-700">
+                            <strong>晚餐节点 (戈西克):</strong> Özcan Restaurant<br>
+                            <span class="text-gray-500">位于海滨，提供常规海鲜料理如烤海鲈鱼 (Grilled Levrek) 及冷盘开胃菜 (Meze)。</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div class="h-40 image-placeholder"></div>
+                    <div class="h-40 image-placeholder"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Day 3 -->
+        <section id="day3" class="tab-content">
+            <h2 class="text-lg font-semibold mb-4 border-l-4 border-gray-800 pl-3">5月3日：戈西克 (Göcek) 设施体验</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <p class="text-sm text-gray-700 mb-4">全日未排定强制行程。D-Resort 提供自行车租赁服务，住客可通过骑行抵达度假村管辖的沙滩区域 (Secret Beach)。戈西克镇区规模较小，步行即可覆盖主要商业设施。</p>
+                    
+                    <h3 class="text-sm font-semibold text-gray-800 mb-2">餐饮清单</h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="p-3 bg-gray-50 border rounded text-gray-700">
+                            <strong>午餐节点:</strong> Q Lounge (位于酒店内)<br>
+                            <span class="text-gray-500">供应地中海与日式融合菜品，视野覆盖松林与海湾，适合长时间停留。</span>
+                        </div>
+                        <div class="p-3 bg-gray-50 border rounded text-gray-700">
+                            <strong>晚餐节点:</strong> Kebab Hospital (镇中心)<br>
+                            <span class="text-gray-500">主营安纳托利亚烤肉类产品，如阿达纳羊肉串 (Adana Kebab)。客群以本地居民为主。</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="h-48 image-placeholder"></div>
+            </div>
+        </section>
+
+        <!-- Day 4 -->
+        <section id="day4" class="tab-content">
+            <h2 class="text-lg font-semibold mb-4 border-l-4 border-gray-800 pl-3">5月4日：卡什 (Kas) 跳岛游及费特希耶转场</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <ul class="space-y-4 text-sm text-gray-700 mb-6">
+                        <li class="flex"><span class="w-16 font-semibold shrink-0">07:30</span><div>由于戈西克至卡什距离约 100 公里，车程预估 1.5 - 2 小时，需提前退房以匹配游船发车时间。</div></li>
+                        <li class="flex"><span class="w-16 font-semibold shrink-0">09:45</span><div>抵达卡什码头，进行游船登机手续校验。</div></li>
+                        <li class="flex"><span class="w-16 font-semibold shrink-0">10:00</span><div>参加 Kekova 跳岛游项目。航线通常覆盖沉没之城 (Sunken City) 遗迹及若干游泳停泊点。午间餐食由船方提供。</div></li>
+                        <li class="flex"><span class="w-16 font-semibold shrink-0">17:00</span><div>活动结束，取车折返。向费特希耶方向行驶约 1.5 小时。</div></li>
+                        <li class="flex"><span class="w-16 font-semibold shrink-0">19:00</span><div>入住 Oludeniz Blu Luxury Unique Hotel (成人限定酒店)。</div></li>
+                    </ul>
+
+                    <h3 class="text-sm font-semibold text-gray-800 mb-2">餐饮清单</h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="p-3 bg-gray-50 border rounded text-gray-700">
+                            <strong>晚餐节点:</strong> Paşa Kebap (费特希耶镇)<br>
+                            <span class="text-gray-500">供应传统餐品，如茄子酸奶垫底烤肉 (Ali Nazik Kebab)。</span>
+                        </div>
+                        <div class="p-3 bg-gray-50 border rounded text-gray-700">
+                            <strong>街头餐饮补充:</strong> Gözleme (土耳其煎饼)<br>
+                            <span class="text-gray-500">当地常见摊贩售卖的扁平面食，通常包含菠菜与奶酪馅料。</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div class="h-40 image-placeholder"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Day 5 -->
+        <section id="day5" class="tab-content">
+            <h2 class="text-lg font-semibold mb-4 border-l-4 border-gray-800 pl-3">5月5日：国内航班至伊斯坦布尔及市区调配</h2>
+            
+            <div class="bg-white p-5 rounded border border-gray-200 mb-6">
+                <h3 class="text-sm font-semibold text-gray-800 mb-3">航班与交通数据</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm border-collapse border border-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="border border-gray-200 px-4 py-2 text-left font-medium text-gray-600">类型/航班号</th>
+                                <th class="border border-gray-200 px-4 py-2 text-left font-medium text-gray-600">时间节点</th>
+                                <th class="border border-gray-200 px-4 py-2 text-left font-medium text-gray-600">机型</th>
+                                <th class="border border-gray-200 px-4 py-2 text-left font-medium text-gray-600">舱位</th>
+                                <th class="border border-gray-200 px-4 py-2 text-left font-medium text-gray-600">确认码 (PNR)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="border border-gray-200 px-4 py-2 text-gray-800">Turkish Airlines TK2555</td>
+                                <td class="border border-gray-200 px-4 py-2 text-gray-600">10:25 (DLM) - 12:00 (IST)</td>
+                                <td class="border border-gray-200 px-4 py-2 text-gray-600">Boeing B737-800</td>
+                                <td class="border border-gray-200 px-4 py-2 text-gray-600">Economy (L)</td>
+                                <td class="border border-gray-200 px-4 py-2 font-mono text-gray-800">WG8JGW</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <ul class="space-y-4 text-sm text-gray-700 mb-6">
+                        <li class="flex"><span class="w-16 font-semibold shrink-0">07:45</span><div>退房。驱车前往达拉曼机场 (DLM)，距离约 60 公里，时长预计 1 小时。</div></li>
+                        <li class="flex"><span class="w-16 font-semibold shrink-0">08:45</span><div>于机场 Cizgi 站点执行还车流程。</div></li>
+                        <li class="flex"><span class="w-16 font-semibold shrink-0">12:00</span><div>抵达伊斯坦布尔 (IST)。建议乘坐 M11 地铁线直达 Gayrettepe 站，随后前往 Fairmont 酒店。</div></li>
+                        <li class="flex"><span class="w-16 font-semibold shrink-0">15:30</span><div>搭乘 M2 地铁转 T1 电车前往 Sultanahmet 区域。外部参观蓝色清真寺 (Blue Mosque) 及广场建筑群。</div></li>
+                        <li class="flex"><span class="w-16 font-semibold shrink-0">18:30</span><div>执行预订的博斯普鲁斯海峡日落游船项目。</div></li>
+                    </ul>
+
+                    <h3 class="text-sm font-semibold text-gray-800 mb-2">餐饮清单 (含酒店代金券消耗)</h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="p-3 bg-gray-50 border rounded text-gray-700">
+                            <strong>晚餐节点:</strong> Aila (Fairmont 酒店内餐厅)<br>
+                            <span class="text-gray-500">主推当代土耳其料理。此项可用于覆盖预订自带的 100 USD 额度，实现资金利用最大化。</span>
+                        </div>
+                        <div class="p-3 bg-gray-50 border rounded text-gray-700">
+                            <strong>备选餐饮 (老城区):</strong> Tarihi Sultanahmet Köftecisi<br>
+                            <span class="text-gray-500">单一品类菜单，主营土耳其烤肉丸 (Köfte)。</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div class="h-40 image-placeholder"></div>
+                    <div class="h-40 image-placeholder"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Day 6 -->
+        <section id="day6" class="tab-content">
+            <h2 class="text-lg font-semibold mb-4 border-l-4 border-gray-800 pl-3">5月6日：伊斯坦布尔老城区与离境准备</h2>
+            
+            <div class="bg-white p-5 rounded border border-gray-200 mb-6">
+                <h3 class="text-sm font-semibold text-gray-800 mb-3">离境航班数据</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm border-collapse border border-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="border border-gray-200 px-4 py-2 text-left font-medium text-gray-600">类型/航班号</th>
+                                <th class="border border-gray-200 px-4 py-2 text-left font-medium text-gray-600">时间节点</th>
+                                <th class="border border-gray-200 px-4 py-2 text-left font-medium text-gray-600">机型</th>
+                                <th class="border border-gray-200 px-4 py-2 text-left font-medium text-gray-600">舱位</th>
+                                <th class="border border-gray-200 px-4 py-2 text-left font-medium text-gray-600">确认码 (PNR)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="border border-gray-200 px-4 py-2 text-gray-800">Emirates (离境返回)</td>
+                                <td class="border border-gray-200 px-4 py-2 text-gray-600">晚间起飞 (IST)</td>
+                                <td class="border border-gray-200 px-4 py-2 text-gray-600">Boeing 777 / A380</td>
+                                <td class="border border-gray-200 px-4 py-2 text-gray-600">Economy</td>
+                                <td class="border border-gray-200 px-4 py-2 font-mono text-gray-800">DPM27F</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <ul class="space-y-4 text-sm text-gray-700 mb-6">
+                        <li class="flex"><span class="w-16 font-semibold shrink-0">10:00</span><div>执行退房程序，将行李寄存至 Fairmont 礼宾部。</div></li>
+                        <li class="flex"><span class="w-16 font-semibold shrink-0">11:00</span><div>转移至加拉达塔 (Galata) 区域或大巴扎进行街区步行考察。</div></li>
+                        <li class="flex"><span class="w-16 font-semibold shrink-0">14:00</span><div>午间餐饮及休息。</div></li>
+                        <li class="flex"><span class="w-16 font-semibold shrink-0">晚间</span><div>返回 Fairmont 提取行李，搭乘 M11 地铁专线前往机场准备离境。</div></li>
+                    </ul>
+
+                    <h3 class="text-sm font-semibold text-gray-800 mb-2">餐饮清单</h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="p-3 bg-gray-50 border rounded text-gray-700">
+                            <strong>午餐节点:</strong> Balkan Lokantası<br>
+                            <span class="text-gray-500">性质为 Esnaf Lokantası (工薪自助餐厅)。主营传统家常品类，如白扁豆炖肉 (Kuru Fasulye)，定价具有竞争力。</span>
+                        </div>
+                        <div class="p-3 bg-gray-50 border rounded text-gray-700">
+                            <strong>甜点节点:</strong> Hafız Mustafa 1864<br>
+                            <span class="text-gray-500">供应标准化传统甜品，含米布丁 (Sütlaç) 与果仁蜜饼 (Baklava)。</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="h-48 image-placeholder"></div>
+            </div>
+        </section>
+
+        <!-- AI Assistant Section -->
+        <section id="aiAssistant" class="tab-content">
+            <div class="bg-white p-6 rounded-lg border border-gray-200 mb-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-2">自然语言处理 (NLP) 交互终端</h2>
+                <p class="text-gray-600 text-sm mb-6">调用 Gemini 基础模型，处理土耳其语转化与在地背景数据检索。</p>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Feature 1 -->
+                    <div class="border border-gray-200 p-4 rounded bg-gray-50">
+                        <h3 class="text-sm font-semibold mb-3 text-gray-800">模块 A：语义转换与注音生成</h3>
+                        <textarea id="ai-translate-input" rows="3" class="w-full p-2 border border-gray-300 rounded text-sm focus:outline-none mb-3 bg-white" placeholder="输入情境语义 (例：请结账，支持信用卡吗？)"></textarea>
+                        <button onclick="generateTranslation()" id="btn-translate" class="w-full bg-gray-800 text-white text-sm font-medium py-2 rounded transition-colors flex justify-center items-center">
+                            <span class="loader" id="loader-translate"></span>
+                            <span>执行转换</span>
+                        </button>
+                        <div id="ai-translate-result" class="mt-4 p-3 bg-white rounded text-sm text-gray-700 hidden border border-gray-200 whitespace-pre-line"></div>
+                    </div>
+
+                    <!-- Feature 2 -->
+                    <div class="border border-gray-200 p-4 rounded bg-gray-50">
+                        <h3 class="text-sm font-semibold mb-3 text-gray-800">模块 B：地理文化维度扩展检索</h3>
+                        <select id="ai-story-select" class="w-full p-2 border border-gray-300 rounded text-sm focus:outline-none mb-3 bg-white">
+                            <option value="D400公路与地中海地形">D400 公路沿岸</option>
+                            <option value="土耳其戈西克(Göcek)游艇史">戈西克 (Göcek)</option>
+                            <option value="卡什Kekova沉没之城地质变迁">Kekova 水下遗迹</option>
+                            <option value="伊斯坦布尔蓝色清真寺建筑学">蓝色清真寺</option>
+                        </select>
+                        <button onclick="generateStory()" id="btn-story" class="w-full bg-gray-800 text-white text-sm font-medium py-2 rounded transition-colors flex justify-center items-center">
+                            <span class="loader" id="loader-story"></span>
+                            <span>检索扩展数据</span>
+                        </button>
+                        <div id="ai-story-result" class="mt-4 p-3 bg-white rounded text-sm text-gray-700 hidden border border-gray-200 whitespace-pre-line"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
+    // Tab Navigation Logic
+    function openTab(evt, tabName) {
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+            tabcontent[i].classList.remove("active");
+        }
+        tablinks = document.getElementsByClassName("nav-btn");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].classList.remove("active");
+        }
+        document.getElementById(tabName).style.display = "block";
+        setTimeout(() => { document.getElementById(tabName).classList.add("active"); }, 10);
+        evt.currentTarget.classList.add("active");
+    }
+
+    // Currency Conversion Logic
+    let isRMB = false;
+    function toggleCurrency() {
+        const rateInput = document.getElementById('fx-rate').value;
+        const rate = parseFloat(rateInput) || 8.32;
+        const btn = document.getElementById('currency-btn');
+        const cells = document.querySelectorAll('.cost-cell');
+        let totalPaid = 0;
+        let totalUnpaid = 0;
+
+        isRMB = !isRMB;
+
+        cells.forEach(cell => {
+            const eurValue = parseFloat(cell.getAttribute('data-eur'));
+            const isPaid = cell.classList.contains('paid-cell');
+            
+            if (isRMB) {
+                const rmbValue = (eurValue * rate).toFixed(2);
+                cell.innerText = `¥ ${rmbValue}`;
+                if(isPaid) totalPaid += (eurValue * rate);
+                else totalUnpaid += (eurValue * rate);
+            } else {
+                cell.innerText = `€ ${eurValue.toFixed(2)}`;
+                if(isPaid) totalPaid += eurValue;
+                else totalUnpaid += eurValue;
+            }
+        });
+
+        const totalCellUnpaid = document.getElementById('total-sum');
+        const totalCellPaid = document.getElementById('total-paid');
+
+        if (isRMB) {
+            btn.innerText = "恢复为欧元 (EUR)";
+            btn.classList.replace('bg-gray-800', 'bg-blue-600');
+            btn.classList.replace('hover:bg-gray-700', 'hover:bg-blue-700');
+            totalCellPaid.innerText = `¥ ${totalPaid.toFixed(2)}`;
+            totalCellUnpaid.innerText = `¥ ${totalUnpaid.toFixed(2)}`;
+        } else {
+            btn.innerText = "转换至人民币 (RMB)";
+            btn.classList.replace('bg-blue-600', 'bg-gray-800');
+            btn.classList.replace('hover:bg-blue-700', 'hover:bg-gray-700');
+            totalCellPaid.innerText = `€ ${totalPaid.toFixed(2)}`;
+            totalCellUnpaid.innerText = `€ ${totalUnpaid.toFixed(2)}`;
+        }
+    }
+
+    // Gemini API Setup
+    const apiKey = ""; 
+    
+    async function callGeminiAPI(prompt, systemInstruction) {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+        const payload = {
+            contents: [{ parts: [{ text: prompt }] }],
+            systemInstruction: { parts: [{ text: systemInstruction }] }
+        };
+        const delays = [1000, 2000, 4000, 8000, 16000];
+        const retries = 5;
+
+        for (let i = 0; i <= retries; i++) {
+            try {
+                const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                return data.candidates[0].content.parts[0].text;
+            } catch (error) {
+                if (i === retries) return "进程异常，无法返回有效数据: " + error.message;
+                await new Promise(res => setTimeout(res, delays[i]));
+            }
+        }
+    }
+
+    async function generateTranslation() {
+        const inputStr = document.getElementById("ai-translate-input").value;
+        const resultBox = document.getElementById("ai-translate-result");
+        const loader = document.getElementById("loader-translate");
+        const btnText = document.querySelector("#btn-translate span:not(.loader)");
+
+        if (!inputStr.trim()) return;
+
+        loader.style.display = "inline-block";
+        btnText.innerText = "处理中";
+        document.getElementById("btn-translate").disabled = true;
+        resultBox.classList.add("hidden");
+
+        const prompt = `源文本：${inputStr}。请输出1. 土耳其语翻译 2. 中文谐音 3. 简述适用场景。保持条理清晰，无多余寒暄。`;
+        const sysInstruction = "系统设定为数据处理模块。风格要求：干练、客观，直接输出结构化结果。";
+        const aiResponse = await callGeminiAPI(prompt, sysInstruction);
+
+        loader.style.display = "none";
+        btnText.innerText = "执行转换";
+        document.getElementById("btn-translate").disabled = false;
+        resultBox.innerHTML = aiResponse.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        resultBox.classList.remove("hidden");
+    }
+
+    async function generateStory() {
+        const locationSelect = document.getElementById("ai-story-select").value;
+        const resultBox = document.getElementById("ai-story-result");
+        const loader = document.getElementById("loader-story");
+        const btnText = document.querySelector("#btn-story span:not(.loader)");
+
+        loader.style.display = "inline-block";
+        btnText.innerText = "检索中";
+        document.getElementById("btn-story").disabled = true;
+        resultBox.classList.add("hidden");
+
+        const prompt = `提取关于 "${locationSelect}" 的历史或地理分析事实。要求：侧重客观数据或历史沿革，字数150字以内，采用白描与学术报告的文风。`;
+        const sysInstruction = "系统设定为研究辅助工具。风格要求：去除形容词，陈述事实与逻辑，严禁使用导游口吻。";
+        const aiResponse = await callGeminiAPI(prompt, sysInstruction);
+
+        loader.style.display = "none";
+        btnText.innerText = "检索扩展数据";
+        document.getElementById("btn-story").disabled = false;
+        resultBox.innerHTML = `<strong>检索目标：${locationSelect}</strong><br><br>${aiResponse.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}`;
+        resultBox.classList.remove("hidden");
+    }
+</script>
+
+</body>
+</html>
